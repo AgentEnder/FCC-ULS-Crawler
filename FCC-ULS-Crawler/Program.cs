@@ -36,7 +36,8 @@ namespace FCC_ULS_Crawler
             }
 
             driver.Close();
-            Console.ReadKey();
+            driver.Quit();
+            driver.Dispose();
         }
 
         static List<string> GetLicenseLinks()
