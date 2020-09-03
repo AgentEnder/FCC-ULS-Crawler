@@ -32,7 +32,7 @@ namespace FCC_ULS_Crawler
             foreach (var licenseLink in licenseLinks)
             {
                 driver.Navigate().GoToUrl(licenseLink);
-                Console.WriteLine(driver.Url);
+                GetLocationDetails();
             }
 
             driver.Close();
@@ -60,6 +60,41 @@ namespace FCC_ULS_Crawler
                 );
             }
             return licenseLinks;
+        }
+
+        static List<string> GetLocationLinks()
+        {
+            HashSet<string> locationLinks = driver.FindElements(By.CssSelector(LicenseResultConstants.locationLinkCSS)).Select(x => x.GetAttribute("href")).ToHashSet();
+            while (true)
+            {
+                IWebElement nextButton;
+                try
+                {
+                    nextButton = driver.FindElement(By.CssSelector(LicenseResultConstants.nextBtnCSS));
+                }
+                catch (NoSuchElementException)
+                {
+                    break;
+                }
+                nextButton.Click();
+                locationLinks.Union(
+                    driver.FindElements(By.CssSelector(LicenseResultConstants.locationLinkCSS)).Select(x => x.GetAttribute("href")).ToList()
+                );
+            }
+            return locationLinks.ToList();
+        }
+
+        static List<Location> GetLocationDetails()
+        {
+            driver.FindElement(By.CssSelector(LicenseResultConstants.locationsTabLinkCSS)).Click();
+            List<string> locations = GetLocationLinks();
+            var locationDetails = new List<Location>();
+            foreach (var location in locations)
+            {
+                Console.WriteLine(location);
+            }
+
+            return locationDetails;
         }
     }
 }

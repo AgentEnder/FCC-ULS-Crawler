@@ -20,6 +20,8 @@ namespace FCC_ULS_Crawler
 
     class LicenseResultConstants
     {
-
+        public const string locationsTabLinkCSS = "a[title=\"Locations\"]";
+        public const string locationLinkCSS = "a[href*=\"licenseLocDetail\"]";
+        public const string nextBtnCSS = "a[title*=\"Next page\"]";
     }
 }
