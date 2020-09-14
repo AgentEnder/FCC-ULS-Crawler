@@ -3,6 +3,7 @@ using OpenQA.Selenium.Chrome;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace FCC_ULS_Crawler
 {
@@ -11,6 +12,8 @@ namespace FCC_ULS_Crawler
         const string baseUrl = "https://wireless2.fcc.gov/UlsApp/UlsSearch/";
         const string licenseSearchURL = "searchLicense.jsp";
         const string FRN = "0016251530";
+        const bool Testing = true;
+
         static IWebDriver driver;
         static void Main(string[] args)
         {
@@ -43,7 +46,7 @@ namespace FCC_ULS_Crawler
         static List<string> GetLicenseLinks()
         {
             var licenseLinks = driver.FindElements(By.CssSelector(SearchResultsConstants.licenseLinkCSS)).Select(x => x.GetAttribute("href")).ToList();
-            while (true)
+            while (true && !Testing)
             {
                 IWebElement nextButton;
                 try
@@ -65,7 +68,7 @@ namespace FCC_ULS_Crawler
         static List<string> GetLocationLinks()
         {
             HashSet<string> locationLinks = driver.FindElements(By.CssSelector(LicenseResultConstants.locationLinkCSS)).Select(x => x.GetAttribute("href")).ToHashSet();
-            while (true)
+            while (true && !Testing)
             {
                 IWebElement nextButton;
                 try
@@ -91,7 +94,26 @@ namespace FCC_ULS_Crawler
             var locationDetails = new List<Location>();
             foreach (var location in locations)
             {
-                Console.WriteLine(location);
+                driver.Navigate().GoToUrl(location);
+                var city = driver.FindElement(By.XPath(LocationDetailConstants.CityXPath)).Text;
+                var county = driver.FindElement(By.XPath(LocationDetailConstants.CountyXPath)).Text;
+                var ppc = String.IsNullOrWhiteSpace(city) ? county : city;
+                locationDetails.Add(new Location
+                {
+                    AntennaAzimuth = float.Parse(driver.FindElement(By.XPath(LocationDetailConstants.AzimuthXPath)).Text.Split(" ")[0]),
+                    Coordinates = Coordinates.Parse(driver.FindElement(By.XPath(LocationDetailConstants.CoordinatesXPath)).Text),
+                    EIRP = float.Parse(driver.FindElement(By.XPath(LocationDetailConstants.EIRPXPath)).Text.Split(" ")[0]),
+                    EquipmentManufacturer = driver.FindElement(By.XPath(LocationDetailConstants.ManufacturerXPath)).Text,
+                    Name = driver.FindElement(By.XPath(LocationDetailConstants.SiteNameXPath)).Text.Split(". Site ")[1],
+                    TransmitAntennaGain = float.Parse(driver.FindElement(By.XPath(LocationDetailConstants.GainXPath)).Text.Split(" ")[0]),
+                    Polarity = driver.FindElement(By.XPath(LocationDetailConstants.PolarityXPath)).Text,
+                    TransmissionLocation = driver.FindElement(By.XPath(LocationDetailConstants.TransmissionLocationXPath)).Text,
+                    PrimaryPopulationCenter = ppc,
+                    AntennaElevation = float.Parse(driver.FindElement(By.XPath(LocationDetailConstants.AntennaElevationXPath)).Text.Split(" ")[0]),
+                    MechanicalBeamTilt = float.Parse(driver.FindElement(By.XPath(LocationDetailConstants.ElevationAngleXPath)).Text.Split(" ")[0]),
+                    RecordLink = new Uri(driver.Url),
+                    WirelessSpectrum = driver.FindElement(By.XPath(LocationDetailConstants.SpectrumXPath)).Text
+                });
             }
 
             return locationDetails;
