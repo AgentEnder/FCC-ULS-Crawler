@@ -30,8 +30,9 @@ namespace FCC_ULS_Crawler
         public float? PowerOutput { get { return EIRP - 30 - TransmitAntennaGain; } }
         public float? GroundElevationAtBase{ get; set; }
         public float? AntennaElevation { get; set; }
-        public DateTime ProposedLaunchDate { get; set; }
+        public DateTime? ProposedLaunchDate { get; set; }
         public Uri RecordLink { get; set; }
+        public string Comments { get; internal set; }
     }
 
     internal class Coordinates

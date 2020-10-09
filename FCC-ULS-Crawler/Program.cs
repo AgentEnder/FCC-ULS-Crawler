@@ -1,8 +1,11 @@
-﻿using OpenQA.Selenium;
+﻿using CsvHelper;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace FCC_ULS_Crawler
@@ -32,10 +35,24 @@ namespace FCC_ULS_Crawler
             // Get links to each license for given FRN, and iterate through them.
             var licenseLinks = GetLicenseLinks();
             Console.WriteLine($"{licenseLinks.Count()} licenses found!");
+            List<Location> locations = new List<Location>();
             foreach (var licenseLink in licenseLinks)
             {
                 driver.Navigate().GoToUrl(licenseLink);
-                GetLocationDetails();
+                locations.AddRange(GetLocationDetails());
+            }
+
+            using (TextWriter sw = new StreamWriter($"Crawl-Ouput-{DateTime.Now:yyyy-MM-ddTHH_mm_ss}.csv", false, new UTF8Encoding(true)))
+            using (CsvWriter csv = new CsvWriter(sw, System.Globalization.CultureInfo.InvariantCulture))
+            {
+                csv.Configuration.RegisterClassMap<LocationMap>();
+                csv.WriteHeader<Location>();
+                csv.NextRecord();
+                foreach (var loc in locations)
+                {
+                    csv.WriteRecord<Location>(loc);
+                    csv.NextRecord();
+                }
             }
 
             driver.Close();
